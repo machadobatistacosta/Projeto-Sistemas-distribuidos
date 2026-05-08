@@ -27,7 +27,7 @@ builder.Services.AddSwaggerGen();
 
 var connection = builder.Configuration.GetConnectionString("Mysql");
 builder.Services.AddDbContext<Db>(options =>
-options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
+options.UseMySql(connection, ServerVersion.Parse("8.0.0-mysql")));
 
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ClienteService.Services.ClienteService>();
@@ -66,21 +66,19 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+for (var attempt = 1; attempt <= 30; attempt++)
 {
-    var db = scope.ServiceProvider.GetRequiredService<Db>();
-
-    for (var attempt = 1; attempt <= 5; attempt++)
+    try
     {
-        try
-        {
-            db.Database.Migrate();
-            break;
-        }
-        catch when (attempt < 5)
-        {
-            Thread.Sleep(TimeSpan.FromSeconds(5));
-        }
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<Db>();
+        db.Database.Migrate();
+        break;
+    }
+    catch (Exception ex) when (attempt < 30)
+    {
+        Console.WriteLine($"[DB] MySQL indisponível: {ex.Message}. Tentando novamente em 5s... ({attempt}/30)");
+        Thread.Sleep(TimeSpan.FromSeconds(5));
     }
 }
 
