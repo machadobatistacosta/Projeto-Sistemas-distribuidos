@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editor JSON</title>
+
+    <link rel="icon" href="https://images.icon-icons.com/79/PNG/256/notepad_15342.png" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/editor/editor.main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <style>
+        .btn-secondary{
+             background-color: #1e1e1e;
+             border: 1px solid black;
+             color: #a1a1a1;
+            
+        }
+        .btn-secondary:hover{
+             background-color: #353535;
+             border: 1px solid black;
+             
+        }
+        .card {
+            border: 1px solid black;
+            background-color: #1e1e1e;
+            color: #a1a1a1;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        .card-body {
+            text-align: center;
+            padding: 10px;
+    
+        }
+        #modalLabel, #modalBody {
+            color: #a1a1a1;
+            border: none;
+        }
+        #dialog {
+            background-color: #121212;
+        }
+        body {
+            background-color: #121212;
+        }
+        h2, table {
+            color: #a1a1a1;
+        }
+        .table {
+            text-align: justify; 
+            margin-left: 15px;
+        }
+        #editorJSON, #estruturaMensagem, #descricao {
+            height: 500px; 
+            border: 1px solid black;
+        }
+        h2 {
+            font-size: 29px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="col-12 card">
+                <div class="card-body">
+                    <b>IMPORTANTE</b>: O validador apenas verifica a <b><i>sintaxe</i></b> do JSON, demais verificações serão feitas após o <b><i>reenvio da mensagem</i></b>.
+                </div>
+            </div>
+         <label for="dadosMensagem" class="form-label"><h2>Dados da mensagem:</h2></label>
+        <div class="row" id="dadosMensagem">
+            <div >
+            <table class="col-12 col-sm-7 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+                <tr> 
+                    <th><b>Fila de origem:</b></th>
+                    <th id="filaOrigem"></th>
+                </tr>
+                <tr>
+                    <th><b>Tipo da mensagem:</b></th>
+                    <th id="tipoMensagem"></th>
+                </tr>
+                <tr>
+                    <th><b>Tipo do erro:</b></th>
+                    <th id="tipoErro"></th>
+                </tr>
+                <tr>
+                    <th><b>Mensagem de erro:</b></th>
+                    <th id="mensagemErro"></th>
+                </tr>
+                <tr>
+                    <th><b>Data do erro:</b></th>
+                    <th id="timestamp"></th>
+                </tr>
+            </table>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+
+        <div class="col-12 col-lg-6 pb-4">
+            <label for="estruturaMensagem" class="form-label"><h2>Estrutura de mensagem esperada:</h2></label>
+            <div id="estruturaMensagem"></div>
+        </div>
+        
+        <div class="col-12 col-lg-6 pb-4 pb-lg-0">
+            <label for="editorJSON" class="form-label"><h2>Edite a mensagem:</h2></label>
+            <div id="editorJSON"></div>
+        </div>
+
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <button onclick="validarJSON()" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editorModal">Validar JSON</button>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-12 pb-4">
+                    <label for="descricao" class="form-label"><h2>Descreva as modificações:</h2></label>
+                <div id="descricao"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6 col-lg-4">
+                <button onclick="reenviarMensagem()" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editorModal">Reenviar mensagem</button>
+            </div>
+        </div>
+        <br><br><br>
+    </div>
+
+    <div class="modal fade" id="editorModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" id="dialog">
+                <div class="modal-header border border-0">
+                    <h1 class="modal-title fs-5" id="modalLabel"></h1>
+                </div>
+                <div class="modal-body" id="modalBody">
+                </div>
+                <div class="modal-footer border border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="fecharPagina()">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = capturarIdUrl;
+        var id
+        var mensagem
+        var editor
+        var estrutura
+        var descricao
+
+         function capturarIdUrl() {
+            var URL = window.location.pathname
+            var separadorDeUrl = URL.split("editor/")
+            if(separadorDeUrl[1] == null) {
+                console.error("Não foi possível localizar um id de mensagem")
+                return
+            }
+            id = separadorDeUrl[1]
+            buscarJSON();
+        }
+
+        async function buscarJSON() {
+            const URL = "http://localhost:9091/mensagem/obter/" + id
+            try {
+                const response = await fetch(URL)
+                if(!response.ok) {
+                    throw new Error('Estado da resposta: ' + response.status)
+                }
+                mensagem = await response.json()
+                console.log(mensagem)
+                inicializarEditor()
+                exibirDadosMensagem()
+            } catch(error) {
+                console.error('Erro ao buscar JSON:', error)
+            }
+        }
+
+        function inicializarEditor() {
+            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs'}})
+
+        require(["vs/editor/editor.main"], () => {
+            editor = monaco.editor.create(document.getElementById('editorJSON'), {
+            value: mensagem.mensagemOriginal,
+            language: 'json',
+            theme: 'vs-dark',
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false
+            })
+        })
+
+        require(["vs/editor/editor.main"], () => {
+            estrutura = monaco.editor.create(document.getElementById('estruturaMensagem'), {
+            value: JSON.stringify(mensagem.estruturaMensagem, null, 2),
+            language: 'json',
+            theme: 'vs-dark',
+            readOnly: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false
+            })
+        })
+
+        require(["vs/editor/editor.main"], () => {
+            descricao = monaco.editor.create(document.getElementById('descricao'), {
+            value: '',
+            language: 'plaintext',
+            theme: 'vs-dark',
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false
+            })
+        })
+        }
+
+        function exibirDadosMensagem() {
+            document.getElementById('filaOrigem').innerHTML = mensagem.filaDeOrigem
+            document.getElementById('tipoMensagem').innerHTML = mensagem.tipoMensagem
+            document.getElementById('mensagemErro').innerHTML = mensagem.mensagemDeErro
+            document.getElementById('timestamp').innerHTML = mensagem.timestamp
+            document.getElementById('tipoErro').innerHTML = mensagem.tipoErro
+        }
+
+        function validarJSON() {
+            try {
+                JSON.parse(editor.getValue())
+                document.getElementById('modalLabel').innerHTML = "JSON válido"
+                document.getElementById('modalBody').innerHTML = "O JSON está estruturado corretamente."
+            } catch(error) {
+                document.getElementById('modalLabel').innerHTML = "JSON inváldio"
+                document.getElementById('modalBody').innerHTML = "Por favor, verifique os dados especificados e tente novamente."
+        }
+    }
+
+    let envioFinalizado = false
+    async function reenviarMensagem() {
+            try {
+                JSON.parse(editor.getValue())
+                if(descricao.getValue() === null || descricao.getValue() === "") {
+                document.getElementById('modalLabel').innerHTML = "Dados inválidos"
+                document.getElementById('modalBody').innerHTML = "Descreva quais modificações foram feitas antes de enviar."
+                return
+                }
+                try {
+                    const mensagemFinal = { id: id, mensagemCorrigida: editor.getValue(), correcaoDocumentada: descricao.getValue(), filaDeOrigem: mensagem.filaDeOrigem }
+                    const request = await fetch("http://localhost:9091/mensagem/reenviar", {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(mensagemFinal)
+                    })
+                    if(!request.ok) {
+                        throw new Error(request.status)
+                    }
+                    console.log(request.status)
+                    document.getElementById('modalLabel').innerHTML = "Reenviado com sucesso!"
+                    document.getElementById('modalBody').innerHTML = "A mensagem foi reenviada com sucesso."
+                    envioFinalizado = true;
+                } catch(error) {
+                console.error('Erro ao reenviar mensagem:', error)
+                }
+            } catch(error) {
+                document.getElementById('modalLabel').innerHTML = "JSON inváldio"
+                document.getElementById('modalBody').innerHTML = "Por favor, verifique os dados especificados e tente novamente."
+            }
+        }
+
+        function fecharPagina() {
+            if(envioFinalizado === true) {
+
+                window.close()
+            }
+        }
+
+        const observerEditor = new ResizeObserver(() => editor.layout())
+        observerEditor.observe(document.getElementById('editorJSON'))
+        const observerEstrutura = new ResizeObserver(() => estrutura.layout())
+        observerEstrutura.observe(document.getElementById('estruturaMensagem'))
+        const observerDescricao = new ResizeObserver(() => descricao.layout())
+        observerDescricao.observe(document.getElementById('descricao'))
+    </script>
+</body>
+

@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: pedidos
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/pedidos
+    username: docker
+    password: docker
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+  rabbitmq:
+    port: 5672
+    addresses: ${SPRING_RABBITMQ_ADDRESSES:localhost:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:admin}
+    password: ${SPRING_RABBITMQ_PASSWORD:admin}
+    listener:
+      simple:
+        concurrency: 1
+        max-concurrency: 1
+        prefetch: 1
+        acknowledge-mode: auto
+        retry:
+          enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+server:
+  port: 8090
+
+api:
+  security:
+    token:
+      secret: CHAVE_SUPER_SECRETA_BPUI_123456789

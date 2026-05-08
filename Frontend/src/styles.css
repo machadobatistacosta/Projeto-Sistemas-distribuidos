@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+  --primary: #f8b400;
+  --primary-hover: #e0a300;
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-header {
+  padding: 1.5rem 5%;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.logo span {
+  color: var(--primary);
+}
+
+.main-nav {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.main-nav a {
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.main-nav a:hover, .main-nav a.active {
+  color: var(--primary);
+}
+
+.login-btn {
+  background-color: var(--primary);
+  color: var(--bg-dark) !important;
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  transition: transform 0.2s, background-color 0.3s !important;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  background-color: var(--primary-hover) !important;
+}
+
+.content {
+  flex: 1;
+  padding: 3rem 5%;
+}
+
+.main-footer {
+  padding: 2rem;
+  text-align: center;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+/* Global Component Styles */
+.section-title {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.btn {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--bg-dark);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}

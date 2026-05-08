@@ -1,0 +1,175 @@
+
+services:
+  eureka-server:
+    build: ./Eureka-Server
+    container_name: eureka_server
+    ports:
+      - "8761:8761"
+    networks:
+      - private_network
+
+
+  produto-service:
+    build: ./Produto-Service
+    container_name: produto_service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - produtos_db
+      - eureka-server
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://produtos_db:5432/produtos
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin
+    networks:
+      - private_network
+
+  pedido-service:
+    build: ./Pedido-Service
+    container_name: pedido_service
+    ports:
+      - "8090:8090"
+    depends_on:
+      - pedidos_db
+      - eureka-server
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pedidos_db:5432/pedidos
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_ENABLED=true
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin
+    networks:
+      - private_network
+
+  cozinha-service:
+    build: ./Cozinha
+    container_name: cozinha_service
+    ports:
+      - "9090:9090"
+    depends_on:
+      - eureka-server
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin
+    networks:
+      - private_network
+
+  # RabbitMQ Broker
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_broker
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - private_network
+
+  # Databases
+  pedidos_db:
+    image: postgres:16
+    container_name: pedidos_postgres
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: pedidos
+    ports:
+      - "5433:5432"
+    networks:
+      - private_network
+
+  usuarios_db:
+    image: mysql:8.0
+    container_name: usuarios_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: ClienteService
+    ports:
+      - "3306:3306"
+    networks:
+      - private_network
+
+  produtos_db:
+    image: postgres:16
+    container_name: produtos_postgres
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: produtos
+    ports:
+      - "5436:5432"
+    networks:
+      - private_network
+
+  usuario-service:
+    build: ./Usuario-Service
+    container_name: usuario_service
+    ports:
+      - "5000:8080"
+    depends_on:
+      - usuarios_db
+    environment:
+      - ConnectionStrings__Mysql=Server=usuarios_mysql;Port=3306;Database=ClienteService;Uid=root;Pwd=admin;
+      - RabbitMQ__Uri=amqp://admin:admin@rabbitmq:5672/
+      - Eureka__Client__ServiceUrl=http://eureka-server:8761/eureka/
+    networks:
+      - private_network
+
+  dlq-support:
+    build: ./DLQSupport
+    container_name: dlq_support
+    ports:
+      - "9091:9091"
+    depends_on:
+      - mensagens_db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://mensagens_db:5432/mensagens
+      - SPRING_DATASOURCE_USERNAME=docker
+      - SPRING_DATASOURCE_PASSWORD=docker
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=admin
+      - SPRING_RABBITMQ_PASSWORD=admin
+    networks:
+      - private_network
+
+  frontend:
+    build: ./Frontend
+    container_name: frontend_app
+    ports:
+      - "4200:80"
+    depends_on:
+      - produto-service
+      - pedido-service
+    networks:
+      - private_network
+
+  mensagens_db:
+    image: postgres:16
+    container_name: mensagens_postgres
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: mensagens
+    ports:
+      - "5434:5432"
+    networks:
+      - private_network
+
+networks:
+    private_network:
+      driver: bridge

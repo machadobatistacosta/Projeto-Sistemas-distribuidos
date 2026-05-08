@@ -1,0 +1,34 @@
+<section class="menu-section">
+  <h2 class="section-title">Nosso Cardápio</h2>
+
+  <div class="product-grid">
+    <div class="card product-card" *ngFor="let p of produtos">
+      <img [src]="p.urlImagem" [alt]="p.nome" class="product-img">
+      <div class="product-info">
+        <h3>{{ p.nome }}</h3>
+        <p class="description">{{ p.descricao }}</p>
+        <div class="price-action">
+          <span class="price">R$ {{ p.preco }}</span>
+          <button class="btn btn-primary" (click)="adicionarAoCarrinho(p)">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkout-bar" *ngIf="carrinho.length > 0">
+    <div class="checkout-info">
+      <p>Você tem <strong>{{ carrinho.length }}</strong> itens no carrinho.</p>
+      
+      <div class="payment-selector">
+        <label for="payment">Forma de Pagamento:</label>
+        <select id="payment" [(ngModel)]="formaDePagamento" class="form-select">
+          <option value="PIX">PIX</option>
+          <option value="DINHEIRO">DINHEIRO (Pague na entrega)</option>
+          <option value="CARTAO_DE_CREDITO">CARTÃO DE CRÉDITO</option>
+          <option value="CARTAO_DE_DEBITO">CARTÃO DE DÉBITO</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" (click)="finalizarPedido()">Finalizar Pedido</button>
+  </div>
+</section>

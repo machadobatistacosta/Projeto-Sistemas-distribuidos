@@ -1,0 +1,20 @@
+<div class="app-container">
+  <header class="main-header">
+    <div class="logo">
+      <h1>Micro<span>Chefs</span></h1>
+    </div>
+    <nav class="main-nav">
+      <a routerLink="/menu" routerLinkActive="active">Cardápio</a>
+      <a routerLink="/pedidos" routerLinkActive="active">Meus Pedidos</a>
+      <a routerLink="/login" class="login-btn">Entrar</a>
+    </nav>
+  </header>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="main-footer">
+    <p>&copy; 2024 MicroChefs - Transformando sua fome em tecnologia.</p>
+  </footer>
+</div>

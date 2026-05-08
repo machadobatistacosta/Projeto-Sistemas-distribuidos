@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: DLQSupport
+
+  rabbitmq:
+    port: 5672
+    addresses: ${SPRING_RABBITMQ_ADDRESSES:localhost:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:admin}
+    password: ${SPRING_RABBITMQ_PASSWORD:admin}
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/mensagens}
+    username: ${SPRING_DATASOURCE_USERNAME:docker}
+    password: ${SPRING_DATASOURCE_PASSWORD:docker}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+
+server:
+  port: 9091
